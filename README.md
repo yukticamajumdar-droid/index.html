@@ -49,8 +49,6 @@
   </div>
 
   <script>
-    const RAPID_API_KEY = '00ae96b3fcmsh1ace60b56968ab8p13700ejsn95d1c5900a99';
-
     async function searchJobs() {
       const query = document.getElementById('jobQuery').value;
       const location = document.getElementById('jobLocation').value;
@@ -59,14 +57,7 @@
       resultsContainer.innerHTML = '<p class="status-msg">Searching jobs across platforms...</p>';
 
       try {
-        const response = await fetch(`https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query + ' in ' + location)}&page=1&num_pages=1`, {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-key': RAPID_API_KEY,
-            'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-          }
-        });
-
+        const response = await fetch(`/api/jobs?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
         const data = await response.json();
 
         if (data.data && data.data.length > 0) {
@@ -88,7 +79,7 @@
         }
       } catch (err) {
         console.error(err);
-        resultsContainer.innerHTML = '<p class="status-msg" style="color:red;">Failed to fetch jobs. Please check your network or try again.</p>';
+        resultsContainer.innerHTML = '<p class="status-msg" style="color:red;">Failed to fetch jobs. Please try again.</p>';
       }
     }
   </script>
