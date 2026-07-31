@@ -1,4 +1,3 @@
-# index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,32 +49,38 @@
   </div>
 
   <script>
-    // ⚠️ REPLACE THIS WITH YOUR LIVE RENDER BACKEND URL ONCE DEPLOYED!
-    const BACKEND_URL = 'http://localhost:5000/api/jobs'; 
+    const RAPID_API_KEY = '00ae96b3fcmsh1ace60b56968ab8p13700ejsn95d1c5900a99';
 
     async function searchJobs() {
       const query = document.getElementById('jobQuery').value;
       const location = document.getElementById('jobLocation').value;
       const resultsContainer = document.getElementById('jobResults');
 
-      resultsContainer.innerHTML = '<p class="status-msg">Searching jobs... (this may take up to 30 seconds on free tier)</p>';
+      resultsContainer.innerHTML = '<p class="status-msg">Searching jobs across platforms...</p>';
 
       try {
-        const response = await fetch(`${BACKEND_URL}?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-        const result = await response.json();
+        const response = await fetch(`https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query + ' in ' + location)}&page=1&num_pages=1`, {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': RAPID_API_KEY,
+            'x-rapidapi-host': 'jsearch.p.rapidapi.com'
+          }
+        });
 
-        if (result.success && result.data.length > 0) {
-          resultsContainer.innerHTML = result.data.map(job => `
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          resultsContainer.innerHTML = data.data.map(job => `
             <div class="job-card">
               <div class="job-info">
                 <h3>
-                  ${job.title} 
-                  <span class="job-badge">${job.platform}</span>
+                  ${job.job_title} 
+                  <span class="job-badge">${job.job_publisher || 'Web'}</span>
                 </h3>
-                <div class="job-company">${job.company} — ${job.location}</div>
-                <div class="job-desc">${job.description}</div>
+                <div class="job-company">${job.employer_name} — ${job.job_city || ''} ${job.job_country || ''}</div>
+                <div class="job-desc">${job.job_description ? job.job_description.substring(0, 180) + '...' : 'No description provided.'}</div>
               </div>
-              <a href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now ↗</a>
+              <a href="${job.job_apply_link}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now ↗</a>
             </div>
           `).join('');
         } else {
@@ -83,7 +88,7 @@
         }
       } catch (err) {
         console.error(err);
-        resultsContainer.innerHTML = '<p class="status-msg" style="color:red;">Error connecting to server. Make sure your backend service is running!</p>';
+        resultsContainer.innerHTML = '<p class="status-msg" style="color:red;">Failed to fetch jobs. Please check your network or try again.</p>';
       }
     }
   </script>
